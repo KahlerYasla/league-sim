@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Football League Simulation</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            background-color: #f8f9fa;
+            /* Light gray background */
+        }
+
+        .container {
+            margin-top: 50px;
+        }
+
+        .table-small {
+            width: 45%;
+            /* Adjust based on your layout */
+            float: left;
+            margin-right: 5%;
+        }
+
+        .button-feedback {
+            margin-top: 10px;
+        }
+
+        .table {
+            margin-bottom: 20px;
+            width: 100%;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h2>Football League Standings</h2>
+        <div id="standings" class="table">
+            <!-- Standings table will be inserted here dynamically -->
+        </div>
+
+        <h2>Match Results</h2>
+        <div id="match-results" class="table">
+            <!-- Match results table will be inserted here dynamically -->
+        </div>
+
+        <h2>Next Week Predictions</h2>
+        <div id="predictions" class="table">
+            <!-- Predictions table will be inserted here dynamically -->
+        </div>
+
+        <!-- Buttons -->
+        <button id="playAllBtn" class="btn btn-primary">Play All</button>
+        <button id="nextWeekBtn" class="btn btn-secondary ml-2" disabled>Next Week</button>
+        <div id="buttonFeedback" class="button-feedback text-muted"></div>
+    </div>
+
+    <!-- jQuery and Bootstrap JS -->
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.3/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+
+    <!-- Custom JavaScript -->
+    <script>
+        // Initial render
+        fetchData();
+
+        // Function to fetch standings, match results, and predictions from backend
+        async function fetchData() {
+            try {
+                // Fetch standings
+                const standingsResponse = await fetch('http://localhost:8080/teams');
+                if (!standingsResponse.ok) {
+                    throw new Error(`Failed to fetch standings: ${standingsResponse.status}`);
+                }
+                const standings = await standingsResponse.json();
+                console.log(standings);
+                renderStandings(standings);
+
+                // Fetch match results
+                const matchResultsResponse = await fetch('http://localhost:8080/matches');
+                if (!matchResultsResponse.ok) {
+                    throw new Error(`Failed to fetch match results: ${matchResultsResponse.status}`);
+                }
+                const matchResults = await matchResultsResponse.json();
+                // renderMatchResults(matchResults);
+
+                // Fetch predictions
+                // const predictionsResponse = await fetch('http://localhost:8080/simulate/week', {
+                //     method: 'POST',
+                //     headers: {
+                //         'Content-Type': 'application/json'
+                //     },
+                //     body: JSON.stringify({ week: 'next' })
+                // });
+                // if (!predictionsResponse.ok) {
+                //     throw new Error(`Failed to fetch predictions: ${predictionsResponse.status}`);
+                // }
+                // const predictions = await predictionsResponse.json();
+                // renderPredictions(predictions);
+
+                // Enable Next Week button
+                document.getElementById('nextWeekBtn').disabled = false;
+                document.getElementById('buttonFeedback').innerText = '';
+            } catch (error) {
+                document.getElementById('buttonFeedback').innerText = `Error: ${error.message}`;
+            }
+        }
+
+        // Function to render standings table
+        function renderStandings(standings) {
+            let standingsHtml = `<table class="table table-sm table-striped table-bordered table-small"><thead><tr><th>Teams</th><th>PTS</th><th>P</th><th>W</th><th>D</th><th>L</th><th>GD</th></tr></thead><tbody>`;
+            standings.forEach(team => {
+                standingsHtml += `<tr><td>${team.Name}</td><td>${team.Points}</td><td>${team.Played}</td><td>${team.Won}</td><td>${team.Drawn}</td><td>${team.Lost}</td><td>${team.GoalDifference}</td></tr>`;
+            });
+            standingsHtml += `</tbody></table>`;
+            document.getElementById('standings').innerHTML = standingsHtml;
+        }
+
+        // Function to render match results table
+        function renderMatchResults(matchResults) {
+            let matchResultsHtml = `<table class="table table-sm table-striped table-bordered table-small"><thead><tr><th>Match</th><th>Result</th></tr></thead><tbody>`;
+            matchResults.forEach(match => {
+                matchResultsHtml += `<tr><td>${match.Teams}</td><td>${match.Result}</td></tr>`;
+            });
+            matchResultsHtml += `</tbody></table>`;
+            document.getElementById('match-results').innerHTML = matchResultsHtml;
+        }
+
+        // Function to render predictions table
+        function renderPredictions(predictions) {
+            let predictionsHtml = `<table class="table table-sm table-striped table-bordered table-small"><thead><tr><th>Team</th><th>Percentage</th></tr></thead><tbody>`;
+            predictions.forEach(prediction => {
+                predictionsHtml += `<tr><td>${prediction.Team}</td><td>${prediction.Percentage}</td></tr>`;
+            });
+            predictionsHtml += `</tbody></table>`;
+            document.getElementById('predictions').innerHTML = predictionsHtml;
+        }
+
+        // Event listener for Play All button
+        document.getElementById('playAllBtn').addEventListener('click', async () => {
+            document.getElementById('buttonFeedback').innerText = 'Playing all matches...';
+            await fetchData();
+        });
+
+        // Event listener for Next Week button
+        document.getElementById('nextWeekBtn').addEventListener('click', async () => {
+            document.getElementById('buttonFeedback').innerText = 'Fetching data for next week...';
+            await fetchData();
+        });
+
+        // Initial load
+        document.addEventListener('DOMContentLoaded', () => {
+            document.getElementById('buttonFeedback').innerText = 'Not Played Yet';
+        });
+    </script>
+</body>
+
+</html>
