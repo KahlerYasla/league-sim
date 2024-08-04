@@ -57,14 +57,9 @@ func (r *genericRepository[T]) GetAll() ([]*T, error) {
 		entity := new(T)
 		values := make([]interface{}, len(r.columns))
 		for i := range values {
-			// Check if the field exists in the struct before accessing it
-			field := reflect.ValueOf(entity).Elem().Field(i)
-			if field.IsValid() && field.CanSet() {
-				values[i] = field.Interface()
-			} else {
-				// Handle the case where the field doesn't exist or cannot be set
-				return nil, fmt.Errorf("field %s not found or cannot be set", r.columns[i])
-			}
+			// Ensure values[i] is a pointer to the field
+			field := reflect.ValueOf(entity).Elem().Field(i).Addr().Interface()
+			values[i] = field
 		}
 		if err := rows.Scan(values...); err != nil {
 			return nil, err
@@ -81,6 +76,7 @@ func (r *genericRepository[T]) GetByID(id int) (*T, error) {
 	entity := new(T)
 	values := make([]interface{}, len(r.columns))
 	for i := range values {
+		// Ensure values[i] is a pointer to the field
 		field := reflect.ValueOf(entity).Elem().Field(i).Addr().Interface()
 		values[i] = field
 	}
