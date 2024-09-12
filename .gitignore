@@ -22,5 +22,5 @@ go.work.sum
 # env file
 .env
 
-# Assets directory
-assets/
+# pdfs in /assets directory
+*.pdf
